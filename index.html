@@ -451,8 +451,17 @@
             <div class="frame-corner top-right"></div>
             <div class="frame-corner bottom-left"></div>
             <div class="frame-corner bottom-right"></div>
-            <img src="assets/images/tarot_card_back.png" alt="已选塔罗牌" class="reading-card-img" id="reading-card-img">
-            <div class="reading-card-glow" id="reading-card-glow"></div>
+            <div class="flip-container" id="reading-flip-container">
+              <div class="flipper" id="reading-flipper">
+                <div class="flip-back">
+                  <img src="assets/images/tarot_card_back.png" alt="塔罗牌背面" class="reading-card-img">
+                </div>
+                <div class="flip-front">
+                  <img src="assets/images/tarot_card_back.png" alt="已选塔罗牌" class="reading-card-img" id="reading-card-img">
+                  <div class="reading-card-glow" id="reading-card-glow"></div>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="reading-card-meta">
             <div class="reading-position-badge" id="reading-position">现在</div>

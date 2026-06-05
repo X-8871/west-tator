@@ -299,28 +299,84 @@ const TAROT_AI = (() => {
 
   // 78张大小阿卡纳随机池
   const CARD_POOL = [
-    { zh: '愚者',    en: 'THE FOOL',          pos: ['新的开始','天真无畏','冒险精神'] },
-    { zh: '魔术师',  en: 'THE MAGICIAN',       pos: ['意志力','创造力','技艺'] },
-    { zh: '女祭司',  en: 'THE HIGH PRIESTESS', pos: ['直觉','神秘','内在智慧'] },
-    { zh: '女皇',    en: 'THE EMPRESS',        pos: ['丰盛','创造','母性之力'] },
-    { zh: '皇帝',    en: 'THE EMPEROR',        pos: ['权威','结构','领导力'] },
-    { zh: '教皇',    en: 'THE HIEROPHANT',     pos: ['传统','信仰','精神引导'] },
-    { zh: '恋人',    en: 'THE LOVERS',         pos: ['结合','选择','灵魂伴侣'] },
-    { zh: '战车',    en: 'THE CHARIOT',        pos: ['意志','胜利','自律'] },
-    { zh: '力量',    en: 'STRENGTH',           pos: ['内在力量','勇气','温柔'] },
-    { zh: '隐士',    en: 'THE HERMIT',         pos: ['内省','孤独','寻道'] },
-    { zh: '命运之轮',en: 'WHEEL OF FORTUNE',   pos: ['转机','循环','命运'] },
-    { zh: '正义',    en: 'JUSTICE',            pos: ['公正','真相','因果'] },
-    { zh: '倒吊人',  en: 'THE HANGED MAN',     pos: ['暂停','新视角','牺牲'] },
-    { zh: '死神',    en: 'DEATH',              pos: ['转化','结束','蜕变'] },
-    { zh: '节制',    en: 'TEMPERANCE',         pos: ['平衡','调和','耐心'] },
-    { zh: '恶魔',    en: 'THE DEVIL',          pos: ['束缚','诱惑','阴影'] },
-    { zh: '塔',      en: 'THE TOWER',          pos: ['突变','崩塌','觉醒'] },
-    { zh: '星星',    en: 'THE STAR',           pos: ['希望','疗愈','指引'] },
-    { zh: '月亮',    en: 'THE MOON',           pos: ['幻象','潜意识','迷雾'] },
-    { zh: '太阳',    en: 'THE SUN',            pos: ['喜悦','成功','活力'] },
-    { zh: '审判',    en: 'JUDGEMENT',          pos: ['重生','召唤','领悟'] },
-    { zh: '世界',    en: 'THE WORLD',          pos: ['圆满','整合','旅程终点'] },
+{ zh: '愚者',    en: 'THE FOOL',          img: '0-thefool.jpg', pos: ['新的开始','天真无畏','冒险精神'] },
+    { zh: '魔术师',  en: 'THE MAGICIAN',       img: '1-themagician.jpg', pos: ['意志力','创造力','技艺'] },
+    { zh: '女祭司',  en: 'THE HIGH PRIESTESS', img: '2-thehighpriestess.jpg', pos: ['直觉','神秘','内在智慧'] },
+    { zh: '女皇',    en: 'THE EMPRESS',        img: '3-theempress.jpg', pos: ['丰盛','创造','母性之力'] },
+    { zh: '皇帝',    en: 'THE EMPEROR',        img: '4-theemperor.jpg', pos: ['权威','结构','领导力'] },
+    { zh: '教皇',    en: 'THE HIEROPHANT',     img: '5-thehierophant.jpg', pos: ['传统','信仰','精神引导'] },
+    { zh: '恋人',    en: 'THE LOVERS',         img: '6-thelovers.jpg', pos: ['结合','选择','灵魂伴侣'] },
+    { zh: '战车',    en: 'THE CHARIOT',        img: '7-thechariot.jpg', pos: ['意志','胜利','自律'] },
+    { zh: '力量',    en: 'STRENGTH',           img: '8-strength.jpg', pos: ['内在力量','勇气','温柔'] },
+    { zh: '隐士',    en: 'THE HERMIT',         img: '9-thehermit.jpg', pos: ['内省','孤独','寻道'] },
+    { zh: '命运之轮',en: 'WHEEL OF FORTUNE',   img: '10-fortune.jpg', pos: ['转机','循环','命运'] },
+    { zh: '正义',    en: 'JUSTICE',            img: '11-justice.jpg', pos: ['公正','真相','因果'] },
+    { zh: '倒吊人',  en: 'THE HANGED MAN',     img: '12-thehangedman.jpg', pos: ['暂停','新视角','牺牲'] },
+    { zh: '死神',    en: 'DEATH',              img: '13-death.jpg', pos: ['转化','结束','蜕变'] },
+    { zh: '节制',    en: 'TEMPERANCE',         img: '14-temperance.jpg', pos: ['平衡','调和','耐心'] },
+    { zh: '恶魔',    en: 'THE DEVIL',          img: '15-thedevil.jpg', pos: ['束缚','诱惑','阴影'] },
+    { zh: '塔',      en: 'THE TOWER',          img: '16-thetower.jpg', pos: ['突变','崩塌','觉醒'] },
+    { zh: '星星',    en: 'THE STAR',           img: '17-thestar.jpg', pos: ['希望','疗愈','指引'] },
+    { zh: '月亮',    en: 'THE MOON',           img: '18-themoon.jpg', pos: ['幻象','潜意识','迷雾'] },
+    { zh: '太阳',    en: 'THE SUN',            img: '19-thesun.jpg', pos: ['喜悦','成功','活力'] },
+    { zh: '审判',    en: 'JUDGEMENT',          img: '20-judgement.jpg', pos: ['重生','召唤','领悟'] },
+    { zh: '世界',    en: 'THE WORLD',          img: '21-theworld.jpg', pos: ['圆满','整合','旅程终点'] },
+    { zh: '权杖王牌', en: 'ACE OF WANDS', img: '22-aceofwands.jpg', pos: ['新的开始', '行动', '热情'] },
+    { zh: '权杖二', en: 'TWO OF WANDS', img: '23-wands2.jpg', pos: ['平衡与选择', '行动', '热情'] },
+    { zh: '权杖三', en: 'THREE OF WANDS', img: '24-wands3.jpg', pos: ['合作与成长', '行动', '热情'] },
+    { zh: '权杖四', en: 'FOUR OF WANDS', img: '25-wands4.jpg', pos: ['稳定与休息', '行动', '热情'] },
+    { zh: '权杖五', en: 'FIVE OF WANDS', img: '26-wands5.jpg', pos: ['冲突与损失', '行动', '热情'] },
+    { zh: '权杖六', en: 'SIX OF WANDS', img: '27-wands6.jpg', pos: ['过渡与胜利', '行动', '热情'] },
+    { zh: '权杖七', en: 'SEVEN OF WANDS', img: '28-wands7.jpg', pos: ['防御与坚持', '行动', '热情'] },
+    { zh: '权杖八', en: 'EIGHT OF WANDS', img: '29-wands8.jpg', pos: ['快速与行动', '行动', '热情'] },
+    { zh: '权杖九', en: 'NINE OF WANDS', img: '30-wands9.jpg', pos: ['满足与焦虑', '行动', '热情'] },
+    { zh: '权杖十', en: 'TEN OF WANDS', img: '31-wands10.jpg', pos: ['完成与重负', '行动', '热情'] },
+    { zh: '权杖侍从', en: 'PAGE OF WANDS', img: '32-pageofwands.jpg', pos: ['消息与探索', '行动', '热情'] },
+    { zh: '权杖骑士', en: 'KNIGHT OF WANDS', img: '33-knightofwands.jpg', pos: ['行动与冲动', '行动', '热情'] },
+    { zh: '权杖王后', en: 'QUEEN OF WANDS', img: '34-queenofwands.jpg', pos: ['滋养与直觉', '行动', '热情'] },
+    { zh: '权杖国王', en: 'KING OF WANDS', img: '35-kingofwands.jpg', pos: ['掌控与权威', '行动', '热情'] },
+    { zh: '圣杯王牌', en: 'ACE OF CUPS', img: '36-aceofcups.jpg', pos: ['新的开始', '情感', '直觉'] },
+    { zh: '圣杯二', en: 'TWO OF CUPS', img: '37-cups2.jpg', pos: ['平衡与选择', '情感', '直觉'] },
+    { zh: '圣杯三', en: 'THREE OF CUPS', img: '38-cups3.jpg', pos: ['合作与成长', '情感', '直觉'] },
+    { zh: '圣杯四', en: 'FOUR OF CUPS', img: '39-cups4.jpg', pos: ['稳定与休息', '情感', '直觉'] },
+    { zh: '圣杯五', en: 'FIVE OF CUPS', img: '40-cups5.jpg', pos: ['冲突与损失', '情感', '直觉'] },
+    { zh: '圣杯六', en: 'SIX OF CUPS', img: '41-cups6.jpg', pos: ['过渡与胜利', '情感', '直觉'] },
+    { zh: '圣杯七', en: 'SEVEN OF CUPS', img: '42-cups7.jpg', pos: ['防御与坚持', '情感', '直觉'] },
+    { zh: '圣杯八', en: 'EIGHT OF CUPS', img: '43-cups8.jpg', pos: ['快速与行动', '情感', '直觉'] },
+    { zh: '圣杯九', en: 'NINE OF CUPS', img: '44-cups9.jpg', pos: ['满足与焦虑', '情感', '直觉'] },
+    { zh: '圣杯十', en: 'TEN OF CUPS', img: '45-cups10.jpg', pos: ['完成与重负', '情感', '直觉'] },
+    { zh: '圣杯侍从', en: 'PAGE OF CUPS', img: '46-pageofcups.jpg', pos: ['消息与探索', '情感', '直觉'] },
+    { zh: '圣杯骑士', en: 'KNIGHT OF CUPS', img: '47-knightofcups.jpg', pos: ['行动与冲动', '情感', '直觉'] },
+    { zh: '圣杯王后', en: 'QUEEN OF CUPS', img: '48-queenofcups.jpg', pos: ['滋养与直觉', '情感', '直觉'] },
+    { zh: '圣杯国王', en: 'KING OF CUPS', img: '49-kingofcups.jpg', pos: ['掌控与权威', '情感', '直觉'] },
+    { zh: '宝剑王牌', en: 'ACE OF SWORDS', img: '50-aceofswords.jpg', pos: ['新的开始', '思想', '冲突'] },
+    { zh: '宝剑二', en: 'TWO OF SWORDS', img: '51-swords2.jpg', pos: ['平衡与选择', '思想', '冲突'] },
+    { zh: '宝剑三', en: 'THREE OF SWORDS', img: '52-swords3.jpg', pos: ['合作与成长', '思想', '冲突'] },
+    { zh: '宝剑四', en: 'FOUR OF SWORDS', img: '53-swords4.jpg', pos: ['稳定与休息', '思想', '冲突'] },
+    { zh: '宝剑五', en: 'FIVE OF SWORDS', img: '54-swords5.jpg', pos: ['冲突与损失', '思想', '冲突'] },
+    { zh: '宝剑六', en: 'SIX OF SWORDS', img: '55-swords6.jpg', pos: ['过渡与胜利', '思想', '冲突'] },
+    { zh: '宝剑七', en: 'SEVEN OF SWORDS', img: '56-swords7.jpg', pos: ['防御与坚持', '思想', '冲突'] },
+    { zh: '宝剑八', en: 'EIGHT OF SWORDS', img: '57-swords8.jpg', pos: ['快速与行动', '思想', '冲突'] },
+    { zh: '宝剑九', en: 'NINE OF SWORDS', img: '58-swords9.jpg', pos: ['满足与焦虑', '思想', '冲突'] },
+    { zh: '宝剑十', en: 'TEN OF SWORDS', img: '59-swords10.jpg', pos: ['完成与重负', '思想', '冲突'] },
+    { zh: '宝剑侍从', en: 'PAGE OF SWORDS', img: '60-pageofswords.jpg', pos: ['消息与探索', '思想', '冲突'] },
+    { zh: '宝剑骑士', en: 'KNIGHT OF SWORDS', img: '61-knightofswords.jpg', pos: ['行动与冲动', '思想', '冲突'] },
+    { zh: '宝剑王后', en: 'QUEEN OF SWORDS', img: '62-queenofswords.jpg', pos: ['滋养与直觉', '思想', '冲突'] },
+    { zh: '宝剑国王', en: 'KING OF SWORDS', img: '63-kingofswords.jpg', pos: ['掌控与权威', '思想', '冲突'] },
+    { zh: '星币王牌', en: 'ACE OF PENTACLES', img: '64-aceofpentacles.jpg', pos: ['新的开始', '物质', '财富'] },
+    { zh: '星币二', en: 'TWO OF PENTACLES', img: '65-pentacles2.jpg', pos: ['平衡与选择', '物质', '财富'] },
+    { zh: '星币三', en: 'THREE OF PENTACLES', img: '66-pentacles3.jpg', pos: ['合作与成长', '物质', '财富'] },
+    { zh: '星币四', en: 'FOUR OF PENTACLES', img: '67-pentacles4.jpg', pos: ['稳定与休息', '物质', '财富'] },
+    { zh: '星币五', en: 'FIVE OF PENTACLES', img: '68-pentacles5.jpg', pos: ['冲突与损失', '物质', '财富'] },
+    { zh: '星币六', en: 'SIX OF PENTACLES', img: '69-pentacles6.jpg', pos: ['过渡与胜利', '物质', '财富'] },
+    { zh: '星币七', en: 'SEVEN OF PENTACLES', img: '70-pentacles7.jpg', pos: ['防御与坚持', '物质', '财富'] },
+    { zh: '星币八', en: 'EIGHT OF PENTACLES', img: '71-pentacles8.jpg', pos: ['快速与行动', '物质', '财富'] },
+    { zh: '星币九', en: 'NINE OF PENTACLES', img: '72-pentacles9.jpg', pos: ['满足与焦虑', '物质', '财富'] },
+    { zh: '星币十', en: 'TEN OF PENTACLES', img: '73-pentacles10.jpg', pos: ['完成与重负', '物质', '财富'] },
+    { zh: '星币侍从', en: 'PAGE OF PENTACLES', img: '74-pageofpentacles.jpg', pos: ['消息与探索', '物质', '财富'] },
+    { zh: '星币骑士', en: 'KNIGHT OF PENTACLES', img: '75-knightofpentacles.jpg', pos: ['行动与冲动', '物质', '财富'] },
+    { zh: '星币王后', en: 'QUEEN OF PENTACLES', img: '76-queenofpentacles.jpg', pos: ['滋养与直觉', '物质', '财富'] },
+    { zh: '星币国王', en: 'KING OF PENTACLES', img: '77-kingofpentacles.jpg', pos: ['掌控与权威', '物质', '财富'] },
   ];
 
   function pickCard() {
@@ -471,13 +527,30 @@ const TAROT_AI = (() => {
     const quoteEl = document.getElementById('quote-text');
     if (quoteEl) quoteEl.innerHTML = loadingHTML;
 
-    // 牌图动画
+    // 牌图动画与图片替换
     const img = document.getElementById('reading-card-img');
-    if (img) { 
-      img.style.animation = 'none'; 
-      void img.offsetWidth; 
-      img.style.animation = 'cardReveal 0.8s cubic-bezier(0.16,1,0.3,1) both';
-      img.style.filter = card.reversed ? 'hue-rotate(180deg) saturate(1.5) brightness(0.8)' : 'hue-rotate(45deg) saturate(1.5) brightness(1.2)';
+    const flipper = document.getElementById('reading-flipper');
+    if (img && flipper) { 
+      // 恢复翻牌前状态
+      flipper.classList.remove('flipped');
+      img.style.animation = 'none';
+      img.style.transform = 'none';
+      img.style.filter = 'none';
+      
+      // 稍微延迟以触发CSS动画
+      setTimeout(() => {
+        img.src = `assets/images/cards/${card.img}`;
+        
+        if (card.reversed) {
+          img.style.transform = 'rotate(180deg)';
+          // 逆位保留一点暗色调滤镜，更有感觉
+          img.style.filter = 'brightness(0.85) contrast(1.1)';
+        }
+        
+        // 执行 3D 翻转
+        flipper.classList.add('flipped');
+        img.style.animation = 'cardReveal 0.8s cubic-bezier(0.16,1,0.3,1) both';
+      }, 100);
     }
 
     // 展示结果区
