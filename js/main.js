@@ -385,6 +385,7 @@ const TAROT_AI = (() => {
     const kw  = c.pos.slice(0, 3);
     return {
       name:     rev ? `${c.zh}（逆位）· ${c.en} (Rev.)` : `${c.zh} · ${c.en}`,
+      img:      c.img,
       keywords: kw.join(' · '),
       energy:   rev ? Math.floor(Math.random() * 25 + 50) : Math.floor(Math.random() * 25 + 70),
       reversed: rev,
