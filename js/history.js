@@ -1,21 +1,23 @@
 /* ============================
    紫夜魔谕 · History Engine
-   Local Storage & Drawer UI
+   Local Storage & Drawer UI (Per-user Profiles)
    ============================ */
 
 'use strict';
 
 window.TAROT_HISTORY = (() => {
-  const STORAGE_KEY = 'tarot_history';
+  const STORAGE_KEY = 'tarot_history_v2';
   const MAX_HISTORY = 50;
 
-  // State
-  let data = { readings: [], stats: { totalReadings: 0 } };
+  // State: allData maps userName to { readings: [], stats: {} }
+  let allData = {};
+  let currentUser = null; // Currently selected user in drawer
   let drawerEl = null;
   let isOpen = false;
 
   // Initialization
   function init() {
+    migrateOldData();
     loadData();
     injectUI();
     document.addEventListener('tarot-reading-complete', (e) => {
@@ -24,23 +26,41 @@ window.TAROT_HISTORY = (() => {
   }
 
   // Data Layer
+  function migrateOldData() {
+    try {
+      const oldRaw = localStorage.getItem('tarot_history');
+      if (oldRaw) {
+        const oldData = JSON.parse(oldRaw);
+        if (oldData.readings && oldData.readings.length > 0) {
+          // Wrap old data under '未知寻问者'
+          const newData = { '未知寻问者': oldData };
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(newData));
+        }
+        localStorage.removeItem('tarot_history');
+      }
+    } catch (e) {}
+  }
+
   function loadData() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
-        data = JSON.parse(raw);
-        if (!data.readings) data.readings = [];
-        if (!data.stats) data.stats = { totalReadings: 0 };
+        allData = JSON.parse(raw);
       }
     } catch (e) {
       console.warn('[History] Failed to parse local storage', e);
-      data = { readings: [], stats: { totalReadings: 0 } };
+      allData = {};
+    }
+    const users = Object.keys(allData);
+    if (users.length > 0) {
+      currentUser = users[0];
     }
   }
 
   function saveData() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
+      renderUserSelect();
       renderHistoryList();
       renderStats();
     } catch (e) {
@@ -49,23 +69,33 @@ window.TAROT_HISTORY = (() => {
   }
 
   function saveReading(readingInfo) {
+    const userName = readingInfo.userName || '未知寻问者';
+    if (!allData[userName]) {
+      allData[userName] = { readings: [], stats: { totalReadings: 0 } };
+    }
+    const userState = allData[userName];
+    
     const entry = {
       id: 'r_' + Date.now() + '_' + Math.floor(Math.random()*1000),
       timestamp: new Date().toISOString(),
       ...readingInfo
     };
-    data.readings.unshift(entry);
-    if (data.readings.length > MAX_HISTORY) {
-      data.readings.pop();
+    userState.readings.unshift(entry);
+    if (userState.readings.length > MAX_HISTORY) {
+      userState.readings.pop();
     }
-    data.stats.totalReadings++;
-    data.stats.lastVisit = entry.timestamp;
+    userState.stats.totalReadings++;
+    userState.stats.lastVisit = entry.timestamp;
+    currentUser = userName; // Auto switch drawer view
     saveData();
   }
 
-  function getRepeatedCards() {
+  function getRepeatedCards(userName) {
+    const nameToUse = userName || currentUser;
+    if (!nameToUse || !allData[nameToUse]) return [];
+    
     const counts = {};
-    data.readings.forEach(r => {
+    allData[nameToUse].readings.forEach(r => {
       if (!r.card || !r.card.name) return;
       const baseName = r.card.name.split('（逆位）')[0].trim();
       counts[baseName] = (counts[baseName] || 0) + 1;
@@ -73,9 +103,12 @@ window.TAROT_HISTORY = (() => {
     return Object.entries(counts).filter(([_, c]) => c >= 3).map(([n, c]) => ({ name: n, count: c }));
   }
 
-  function clear() {
-    if (confirm('是否确定清空所有命运档案？这无法撤销。')) {
-      data = { readings: [], stats: { totalReadings: 0 } };
+  function clearCurrentUser() {
+    if (!currentUser) return;
+    if (confirm(\`是否确定清空【\${currentUser}】的所有命运档案？无法撤销。\`)) {
+      delete allData[currentUser];
+      const users = Object.keys(allData);
+      currentUser = users.length > 0 ? users[0] : null;
       saveData();
     }
   }
@@ -90,42 +123,50 @@ window.TAROT_HISTORY = (() => {
       btn.id = 'history-toggle';
       btn.setAttribute('aria-label', '命运档案');
       btn.title = '命运档案';
-      btn.innerHTML = `
+      btn.innerHTML = \`
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
           <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
           <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-        </svg>`;
+        </svg>\`;
       btn.addEventListener('click', toggleDrawer);
       nav.insertBefore(btn, cta);
     }
 
     drawerEl = document.createElement('div');
     drawerEl.className = 'history-drawer';
-    drawerEl.innerHTML = `
+    drawerEl.innerHTML = \`
       <div class="history-drawer-overlay"></div>
       <div class="history-drawer-panel">
         <div class="history-header">
-          <h2>命运档案</h2>
+          <div class="history-title-group">
+            <h2>命运档案</h2>
+            <select id="history-user-select" class="history-user-select" aria-label="选择占卜者"></select>
+          </div>
           <button class="history-close" aria-label="关闭">&times;</button>
         </div>
         <div class="history-stats">
           <div class="stat-item"><span class="stat-value" id="stat-total">0</span><span class="stat-label">次占卜</span></div>
-          <div class="stat-item"><span class="stat-value" id="stat-element">平衡</span><span class="stat-label">元素分布</span></div>
+          <div class="stat-item"><span class="stat-value" id="stat-element">-</span><span class="stat-label">元素偏好</span></div>
         </div>
         <div class="history-list" id="history-list"></div>
         <div class="history-footer">
-          <button class="history-clear-btn">清空记忆</button>
+          <button class="history-clear-btn" id="history-clear-btn">清空当前角色记忆</button>
         </div>
       </div>
-    `;
+    \`;
     document.body.appendChild(drawerEl);
 
     drawerEl.querySelector('.history-close').addEventListener('click', toggleDrawer);
     drawerEl.querySelector('.history-drawer-overlay').addEventListener('click', toggleDrawer);
-    drawerEl.querySelector('.history-clear-btn').addEventListener('click', clear);
+    drawerEl.querySelector('#history-clear-btn').addEventListener('click', clearCurrentUser);
+    drawerEl.querySelector('#history-user-select').addEventListener('change', (e) => {
+      currentUser = e.target.value;
+      renderHistoryList();
+      renderStats();
+    });
 
     const style = document.createElement('style');
-    style.textContent = `
+    style.textContent = \`
       .history-toggle {
         background: none; border: 1px solid rgba(201,168,76,0.2); border-radius: 8px;
         padding: 6px 8px; cursor: pointer; color: var(--gold-400, #c9a84c);
@@ -149,7 +190,12 @@ window.TAROT_HISTORY = (() => {
       .history-drawer.is-open .history-drawer-panel { transform: translateX(0); }
       
       .history-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid rgba(201,168,76,0.1); }
+      .history-title-group { display: flex; flex-direction: column; gap: 4px; }
       .history-header h2 { margin: 0; color: var(--gold-400); font-family: 'Cinzel', serif; font-size: 1.2rem; }
+      .history-user-select { background: rgba(201,168,76,0.1); color: #fff; border: 1px solid rgba(201,168,76,0.3); border-radius: 4px; padding: 4px 8px; font-size: 0.85rem; outline: none; cursor: pointer; }
+      .history-user-select:focus { border-color: var(--gold-400); }
+      .history-user-select option { background: #1a1a1a; color: #fff; }
+      
       .history-close { background: none; border: none; color: #aaa; font-size: 1.5rem; cursor: pointer; padding: 0 10px; }
       .history-close:hover { color: #fff; }
       
@@ -181,9 +227,10 @@ window.TAROT_HISTORY = (() => {
       @media (max-width: 768px) {
         .history-toggle { position: fixed; bottom: 135px; left: 20px; z-index: 999; background: rgba(13,0,16,0.85); backdrop-filter: blur(8px); border-radius: 50%; padding: 10px 12px; }
       }
-    `;
+    \`;
     document.head.appendChild(style);
 
+    renderUserSelect();
     renderStats();
     renderHistoryList();
   }
@@ -191,7 +238,10 @@ window.TAROT_HISTORY = (() => {
   function toggleDrawer() {
     isOpen = !isOpen;
     if (drawerEl) {
-      if (isOpen) renderHistoryList();
+      if (isOpen) {
+        renderUserSelect();
+        renderHistoryList();
+      }
       drawerEl.classList.toggle('is-open', isOpen);
     }
   }
@@ -208,9 +258,10 @@ window.TAROT_HISTORY = (() => {
     return d.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
   }
 
-  function analyzeElements() {
+  function analyzeElements(readings) {
+    if (!readings || readings.length === 0) return '-';
     const counts = { W:0, C:0, S:0, P:0, M:0 };
-    data.readings.forEach(r => {
+    readings.forEach(r => {
       const n = r.card?.name || '';
       if (n.includes('权杖') || n.includes('WANDS')) counts.W++;
       else if (n.includes('圣杯') || n.includes('CUPS')) counts.C++;
@@ -224,11 +275,40 @@ window.TAROT_HISTORY = (() => {
     return names[max[0]] + '系主导';
   }
 
+  function renderUserSelect() {
+    const select = document.getElementById('history-user-select');
+    if (!select) return;
+    const users = Object.keys(allData);
+    if (users.length === 0) {
+      select.innerHTML = '<option value="">(无存档)</option>';
+      select.style.display = 'none';
+      return;
+    }
+    select.style.display = 'block';
+    select.innerHTML = users.map(u => \`<option value="\${u}">\${u} 的存档</option>\`).join('');
+    if (currentUser && users.includes(currentUser)) {
+      select.value = currentUser;
+    } else {
+      currentUser = users[0];
+      select.value = currentUser;
+    }
+  }
+
   function renderStats() {
     const st = document.getElementById('stat-total');
     const el = document.getElementById('stat-element');
-    if (st) st.textContent = data.stats.totalReadings;
-    if (el) el.textContent = analyzeElements();
+    const clearBtn = document.getElementById('history-clear-btn');
+    
+    if (!currentUser || !allData[currentUser]) {
+      if (st) st.textContent = '0';
+      if (el) el.textContent = '-';
+      if (clearBtn) clearBtn.style.display = 'none';
+      return;
+    }
+    
+    if (clearBtn) clearBtn.style.display = 'inline-block';
+    if (st) st.textContent = allData[currentUser].stats.totalReadings;
+    if (el) el.textContent = analyzeElements(allData[currentUser].readings);
   }
 
   function renderHistoryList() {
@@ -236,12 +316,12 @@ window.TAROT_HISTORY = (() => {
     if (!list) return;
     list.innerHTML = '';
     
-    if (data.readings.length === 0) {
-      list.innerHTML = '<div style="text-align:center; color:rgba(255,255,255,0.3); padding: 40px 0;">记忆长廊空空如也</div>';
+    if (!currentUser || !allData[currentUser] || allData[currentUser].readings.length === 0) {
+      list.innerHTML = '<div style="text-align:center; color:rgba(255,255,255,0.3); padding: 40px 0;">该寻问者的长廊空空如也</div>';
       return;
     }
 
-    data.readings.forEach(r => {
+    allData[currentUser].readings.forEach(r => {
       const d = new Date(r.timestamp);
       const item = document.createElement('div');
       item.className = 'history-item';
@@ -249,21 +329,21 @@ window.TAROT_HISTORY = (() => {
       const themeMap = { love:'感情', career:'事业', wealth:'财富', future:'未来', growth:'成长', decision:'抉择' };
       const themeTxt = themeMap[r.theme] || '综合';
       
-      item.innerHTML = `
+      item.innerHTML = \`
         <div class="history-item-header">
-          <div class="history-item-title">${r.card?.name || '未知牌'}</div>
-          <div class="history-item-time">${getRelativeTime(d)}</div>
+          <div class="history-item-title">\${r.card?.name || '未知牌'}</div>
+          <div class="history-item-time">\${getRelativeTime(d)}</div>
         </div>
         <div class="history-item-meta">
-          <span>${themeTxt}</span> | <span>${r.position}</span>
+          <span>\${themeTxt}</span> | <span>\${r.position}</span>
         </div>
         <div class="history-item-content">
-          ${r.question ? '<p style="color:rgba(255,255,255,0.5); font-style:italic; margin-bottom:10px;">"' + r.question + '"</p>' : ''}
-          <p><strong style="color:var(--gold-400)">核心：</strong>${r.reading?.core || ''}</p>
-          <p><strong style="color:var(--gold-400)">建议：</strong>${r.reading?.advice || ''}</p>
-          <p><strong style="color:var(--purple-400, #a78bfa)">指引：</strong>${r.reading?.quote || ''}</p>
+          \${r.question ? '<p style="color:rgba(255,255,255,0.5); font-style:italic; margin-bottom:10px;">"' + r.question + '"</p>' : ''}
+          <p><strong style="color:var(--gold-400)">核心：</strong>\${r.reading?.core || ''}</p>
+          <p><strong style="color:var(--gold-400)">建议：</strong>\${r.reading?.advice || ''}</p>
+          <p><strong style="color:var(--purple-400, #a78bfa)">指引：</strong>\${r.reading?.quote || ''}</p>
         </div>
-      `;
+      \`;
       item.addEventListener('click', () => {
         item.classList.toggle('is-expanded');
       });
@@ -279,10 +359,10 @@ window.TAROT_HISTORY = (() => {
 
   return {
     save: saveReading,
-    getAll: () => data.readings,
-    getStats: () => data.stats,
+    getAll: (user) => allData[user || currentUser]?.readings || [],
+    getStats: (user) => allData[user || currentUser]?.stats || null,
     getRepeatedCards,
-    clear,
+    clearCurrentUser,
     toggleDrawer
   };
 })();

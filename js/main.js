@@ -508,6 +508,7 @@ const TAROT_AI = (() => {
       // Dispatch event to save history
       document.dispatchEvent(new CustomEvent('tarot-reading-complete', {
         detail: {
+          userName,
           spread: '时间之流', // Assuming default spread for now
           theme,
           question,
