@@ -370,8 +370,8 @@
             <svg class="deco-star" viewBox="0 0 24 24" fill="none"><path d="M12 2L14.4 9.6H22.4L16 14L18.4 21.6L12 17.2L5.6 21.6L8 14L1.6 9.6H9.6Z" stroke="#c9a84c" stroke-width="1"/></svg>
             <span class="deco-line"></span>
           </div>
-          <h2 class="section-title" id="spread-title">女巫牌阵 · 选择一张牌</h2>
-          <p class="section-subtitle">凝神专注于你的问题，选择最吸引你的那一张</p>
+          <h2 class="section-title" id="spread-title">女巫牌阵 · 时间之流</h2>
+          <p class="section-subtitle" id="spread-subtitle">请依次抽取 3 张牌，它们分别代表：过去、现在、未来</p>
         </div>
 
         <div class="cards-display" role="group" aria-label="三张塔罗牌，请选择一张">
@@ -444,37 +444,33 @@
 
       <div class="reading-body">
 
-        <!-- Selected card display -->
-        <div class="reading-card-display">
-          <div class="reading-card-frame">
-            <div class="frame-corner top-left"></div>
-            <div class="frame-corner top-right"></div>
-            <div class="frame-corner bottom-left"></div>
-            <div class="frame-corner bottom-right"></div>
-            <div class="flip-container" id="reading-flip-container">
-              <div class="flipper" id="reading-flipper">
-                <div class="flip-back">
-                  <img src="assets/images/tarot_card_back.png" alt="塔罗牌背面" class="reading-card-img">
-                </div>
-                <div class="flip-front">
-                  <img src="assets/images/tarot_card_back.png" alt="已选塔罗牌" class="reading-card-img" id="reading-card-img">
-                  <div class="reading-card-glow" id="reading-card-glow"></div>
-                </div>
-              </div>
+        <!-- Selected cards display -->
+        <div class="reading-cards-row" id="reading-cards-grid">
+          <div class="reading-card-display">
+            <div class="reading-card-frame">
+              <img src="assets/images/tarot_card_back.png" class="reading-card-img" id="reading-img-0">
+            </div>
+            <div class="reading-card-meta">
+              <div class="reading-position-badge">过去</div>
+              <p class="reading-card-keyword"><strong id="reading-kw-0">-</strong></p>
             </div>
           </div>
-          <div class="reading-card-meta">
-            <div class="reading-position-badge" id="reading-position">现在</div>
-            <p class="reading-card-keyword" id="reading-keyword">
-              <span>关键词</span>
-              <strong id="reading-kw-text">洞见 · 清明 · 直觉</strong>
-            </p>
-            <div class="reading-energy-bar">
-              <span class="energy-label">能量强度</span>
-              <div class="energy-track">
-                <div class="energy-fill" id="energy-fill" style="width: 78%"></div>
-              </div>
-              <span class="energy-val" id="energy-val">78%</span>
+          <div class="reading-card-display">
+            <div class="reading-card-frame">
+              <img src="assets/images/tarot_card_back.png" class="reading-card-img" id="reading-img-1">
+            </div>
+            <div class="reading-card-meta">
+              <div class="reading-position-badge">现在</div>
+              <p class="reading-card-keyword"><strong id="reading-kw-1">-</strong></p>
+            </div>
+          </div>
+          <div class="reading-card-display">
+            <div class="reading-card-frame">
+              <img src="assets/images/tarot_card_back.png" class="reading-card-img" id="reading-img-2">
+            </div>
+            <div class="reading-card-meta">
+              <div class="reading-position-badge">未来</div>
+              <p class="reading-card-keyword"><strong id="reading-kw-2">-</strong></p>
             </div>
           </div>
         </div>

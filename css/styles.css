@@ -321,11 +321,19 @@
 
 /* Reading body layout */
 .reading-body {
-  display: grid;
-  grid-template-columns: 220px 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 48px;
-  align-items: start;
+  align-items: center;
   margin-bottom: 56px;
+}
+
+.reading-cards-row {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  flex-wrap: wrap;
+  width: 100%;
 }
 
 /* Card display */

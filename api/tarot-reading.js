@@ -75,35 +75,38 @@ function buildDeepSeekPayload(body) {
   const userName = clampText(body.userName, 40) || '寻问者';
   const question = clampText(body.question, 240) || '关于当下的迷惘';
   const theme = clampText(body.theme, 30);
-  const position = ['过去', '现在', '未来'].includes(body.position) ? body.position : '现在';
-  const card = normalizeCard(body.card);
   const themeTxt = themeMap[theme] || theme || '综合';
+  
+  // body.cards should be an array of 3 cards: [past, present, future]
+  const cards = (body.cards || []).map(normalizeCard);
 
   const systemPrompt = `你是「紫夜魔谕」的首席塔罗占卜师，精通韦特（Rider-Waite）塔罗体系与荣格原型心理学。
 你的语言风格：神秘、诗意、温柔而有力量，像维多利亚时代烛光下的低语。
 
 ## 解读规则
-1. 先在内心分析牌的传统象征含义与位置关系
-2. 将牌面信息与用户的具体问题和主题深度关联
-3. 核心启示应直击用户潜意识中真正在意的事
-4. 建议必须具体、可操作，禁止用"保持积极""相信自己"等空话
-5. 警示要温和但诚实，指出用户可能忽视的盲点
-6. 命运格言要有哲学深度，令人回味
-
-## 禁止事项
-- 不要预测具体日期、数字或人名
-- 不要给出医疗、法律、财务的具体建议
-- 不要暗示逆位就是"坏牌"——逆位是能量的另一种表达
-- 不要重复牌的名称或关键词作为填充内容
+1. 你将收到一个「时间之流」三牌阵：分别代表过去、现在、未来。
+2. 分析这3张牌之间的能量流动、元素生克关系和时间线上的因果演变。
+3. 将牌面信息与用户的具体问题和主题深度关联。
+4. 核心启示应提炼这3张牌所讲述的完整故事，直击用户潜意识。
+5. 建议必须具体、可操作，基于牌阵的整体趋势给出指引。
+6. 警示要温和但诚实，指出未来可能遇到的阻碍或当下忽视的盲点。
+7. 命运格言要有哲学深度，令人回味。
 
 ## 输出格式
 请严格按照以下JSON格式回复，不要输出JSON之外的任何内容：
 {
-  "core": "核心启示，2-4句，100字以内。直接回应用户的问题，揭示牌面与当前处境的深层关联",
-  "advice": "塔罗建议，2-3句，100字以内。给出具体可行的行动建议或心态调整方向",
-  "warning": "需要注意，1-2句，80字以内。温和指出潜在盲点或需要警惕的能量",
-  "quote": "命运格言，1句话，25字以内。诗意、哲理、简练"
+  "core": "核心启示，3-5句，150字以内。综合3张牌讲述的故事，揭示因果链条。",
+  "advice": "塔罗建议，2-3句，100字以内。给出具体的行动建议或心态调整。",
+  "warning": "需要注意，1-2句，80字以内。温和指出潜在盲点或风险。",
+  "quote": "命运格言，1句话，25字以内。诗意、哲理。"
 }`;
+
+  const cardsText = cards.map((c, i) => {
+    const posName = ['过去', '现在', '未来'][i];
+    return `[${posName}]：${c.name}
+状态：${c.reversed ? '逆位 — 能量受阻/内在演变' : '正位 — 能量顺畅'}
+关键词：${c.keywords}`;
+  }).join('\n\n');
 
   const userPrompt = `【占卜档案】
 占卜对象：${userName}
@@ -112,13 +115,10 @@ function buildDeepSeekPayload(body) {
 【求问者的心声】
 ${question}
 
-【牌面信息】
-牌阵位置：${position}（${posMap[position] || position}）
-塔罗牌：${card.name}
-正逆位：${card.reversed ? '逆位 — 能量受阻或需要内在审视' : '正位 — 能量顺畅流动'}
-关键词：${card.keywords}
+【牌面信息：时间之流】
+${cardsText}
 
-请结合以上所有信息，为求问者提供一份有深度、有温度的塔罗解读。`;
+请综合这三张牌的因果与能量，为求问者提供一份有深度、有温度的塔罗解读。`;
 
   return {
     model: DEEPSEEK_MODEL,
@@ -127,7 +127,7 @@ ${question}
       { role: 'user', content: userPrompt },
     ],
     temperature: 0.9,
-    max_tokens: 800,
+    max_tokens: 1000,
     stream: false,
   };
 }
@@ -137,6 +137,8 @@ function normalizeCard(card = {}) {
     name: clampText(card.name, 80) || '未知塔罗牌',
     keywords: clampText(card.keywords, 120) || '指引',
     reversed: Boolean(card.reversed),
+    img: clampText(card.img, 80),
+    energy: Number(card.energy) || 78
   };
 }
 

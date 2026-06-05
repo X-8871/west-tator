@@ -400,7 +400,7 @@ const TAROT_AI = (() => {
     };
   }
 
-  async function askDeepSeek(userName, question, theme, position, card) {
+  async function askDeepSeek(userName, question, theme, position, cards) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000);
 
@@ -416,7 +416,7 @@ const TAROT_AI = (() => {
           question,
           theme,
           position,
-          card,
+          cards,
         }),
         signal: controller.signal,
       });
@@ -441,19 +441,19 @@ const TAROT_AI = (() => {
   const cards     = document.querySelectorAll('.tarot-card');
   const hintEl    = document.getElementById('spread-hint');
   const resultSec = document.getElementById('reading-result');
-  let selected    = null;
+  let drawnCards  = [];
   let isLoading   = false;
 
   const positions = ['过去', '现在', '未来'];
   const hints = [
-    '过去的烛光已经燃起，神谕正在凝聚…',
-    '当下的能量已被感知，深渊开始回应…',
-    '未来的星光已经降临，命运低语传来…',
+    '过去的烛光已经燃起，请抽取代表「现在」的牌…',
+    '当下的能量已被感知，请抽取代表「未来」的牌…',
+    '未来的星光已经降临，神谕正在显现…',
   ];
 
   cards.forEach((card, i) => {
     card.addEventListener('click', () => {
-      if (selected === card || isLoading) return;
+      if (card.classList.contains('selected') || isLoading || drawnCards.length >= 3) return;
       
       const name = document.getElementById('user-name')?.value.trim();
       const question = document.getElementById('user-question')?.value.trim();
@@ -462,23 +462,41 @@ const TAROT_AI = (() => {
         if (btn) btn.click();
         return;
       }
+
+      // Draw unique card
+      let picked;
+      do {
+        picked = TAROT_AI.pickCard();
+      } while (drawnCards.some(c => c.name === picked.name));
       
-      cards.forEach(c => {
-        c.classList.remove('selected');
-        c.setAttribute('aria-pressed', 'false');
-        c.style.animation = `cardFloat ${3.5 + Array.from(cards).indexOf(c) * 0.4}s ease-in-out infinite`;
-      });
-      selected = card;
+      drawnCards.push(picked);
+
       card.classList.add('selected');
       card.setAttribute('aria-pressed', 'true');
       card.style.animation = 'none';
 
+      // Flip card in place (change the background image directly)
+      const imgTarget = card.querySelector('.card-back-img');
+      const overlay = card.querySelector('.card-back-overlay');
+      if (imgTarget) {
+         imgTarget.src = `assets/images/cards/${picked.img}`;
+         if (picked.reversed) {
+           imgTarget.style.transform = 'rotate(180deg)';
+           imgTarget.style.filter = 'brightness(0.85) contrast(1.1)';
+         }
+      }
+      if (overlay) overlay.style.display = 'none';
+
+      if (typeof TAROT_AUDIO !== 'undefined') TAROT_AUDIO.playReveal();
+
       if (hintEl) {
         const span = hintEl.querySelector('span');
-        if (span) { span.style.opacity = '0'; setTimeout(() => { span.textContent = hints[i]; span.style.opacity = '1'; span.style.transition = 'opacity 0.4s'; }, 200); }
+        if (span) { span.style.opacity = '0'; setTimeout(() => { span.textContent = hints[drawnCards.length - 1]; span.style.opacity = '1'; span.style.transition = 'opacity 0.4s'; }, 200); }
       }
 
-      setTimeout(() => invokeReading(positions[i]), 600);
+      if (drawnCards.length === 3) {
+        setTimeout(() => invokeReading(drawnCards), 1000);
+      }
     });
 
     card.addEventListener('keydown', e => {
@@ -486,7 +504,7 @@ const TAROT_AI = (() => {
     });
   });
 
-  async function invokeReading(position) {
+  async function invokeReading(drawn) {
     if (!resultSec) return;
     isLoading = true;
 
@@ -495,15 +513,12 @@ const TAROT_AI = (() => {
     const question = document.getElementById('user-question')?.value.trim() || '';
     const theme    = document.getElementById('select-theme')?.value || '';
 
-    // 随机抽牌
-    const card = TAROT_AI.pickCard();
-
     // 先展示结构（loading状态）
-    showResultShell(card, position);
+    showResultShell(drawn);
 
     try {
-      const reading = await TAROT_AI.askDeepSeek(userName, question, theme, position, card);
-      fillReadingContent(reading, card.energy);
+      const reading = await TAROT_AI.askDeepSeek(userName, question, theme, '时间之流', drawn);
+      fillReadingContent(reading);
       
       // Dispatch event to save history
       document.dispatchEvent(new CustomEvent('tarot-reading-complete', {
@@ -512,10 +527,11 @@ const TAROT_AI = (() => {
           spread: '时间之流', // Assuming default spread for now
           theme,
           question,
-          card,
-          position,
+          card: drawn[1], // fallback for icon
+          cards: drawn,
+          position: '现在',
           reading,
-          energy: card.energy
+          energy: Math.floor((drawn[0].energy + drawn[1].energy + drawn[2].energy) / 3)
         }
       }));
     } catch (err) {
@@ -526,17 +542,27 @@ const TAROT_AI = (() => {
     }
   }
 
-  function showResultShell(card, position) {
-    // 填写牌名、位置、关键词（立即显示）
-    document.getElementById('reading-card-name').textContent = card.name;
-    document.getElementById('reading-position').textContent = position;
-    document.getElementById('reading-kw-text').textContent  = card.keywords;
+  function showResultShell(drawn) {
+    // 填写牌名（立即显示）
+    document.getElementById('reading-card-name').textContent = drawn.map(c => c.name.split('·')[0].trim()).join(' · ');
 
-    // 能量条动画
-    const fill = document.getElementById('energy-fill');
-    const val  = document.getElementById('energy-val');
-    if (fill) { fill.style.width = '0%'; setTimeout(() => { fill.style.width = card.energy + '%'; }, 300); }
-    if (val)  val.textContent = card.energy + '%';
+    drawn.forEach((c, i) => {
+      const imgEl = document.getElementById(`reading-img-${i}`);
+      const kwEl = document.getElementById(`reading-kw-${i}`);
+      if (imgEl) {
+        imgEl.src = `assets/images/cards/${c.img}`;
+        if (c.reversed) {
+          imgEl.style.transform = 'rotate(180deg)';
+          imgEl.style.filter = 'brightness(0.85) contrast(1.1)';
+        } else {
+          imgEl.style.transform = 'none';
+          imgEl.style.filter = 'none';
+        }
+      }
+      if (kwEl) {
+        kwEl.textContent = c.keywords;
+      }
+    });
 
     // 解读区显示loading骨架
     const loadingHTML = `<span class="ai-loading">
@@ -550,38 +576,13 @@ const TAROT_AI = (() => {
     const quoteEl = document.getElementById('quote-text');
     if (quoteEl) quoteEl.innerHTML = loadingHTML;
 
-    // 牌图动画与图片替换
-    const img = document.getElementById('reading-card-img');
-    const flipper = document.getElementById('reading-flipper');
-    if (img && flipper) { 
-      // 恢复翻牌前状态
-      flipper.classList.remove('flipped');
-      img.style.transform = 'none';
-      img.style.filter = 'none';
-      
-      // 稍微延迟以触发CSS动画
-      setTimeout(() => {
-        img.src = `assets/images/cards/${card.img}`;
-        
-        if (card.reversed) {
-          img.style.transform = 'rotate(180deg)';
-          // 逆位保留一点暗色调滤镜，更有感觉
-          img.style.filter = 'brightness(0.85) contrast(1.1)';
-        }
-        
-        // 执行 3D 翻转
-        flipper.classList.add('flipped');
-        if (typeof TAROT_AUDIO !== 'undefined') TAROT_AUDIO.playReveal();
-      }, 100);
-    }
-
     // 展示结果区
     resultSec.hidden = false;
     resultSec.removeAttribute('hidden');
     setTimeout(() => scrollToEl('reading-result'), 150);
   }
 
-  function fillReadingContent(reading, energy) {
+  function fillReadingContent(reading) {
     // 打字机效果逐字渲染
     typeText('interp-core-text',    reading.core    || '');
     typeText('interp-advice-text',  reading.advice  || '', 120);
