@@ -504,6 +504,19 @@ const TAROT_AI = (() => {
     try {
       const reading = await TAROT_AI.askDeepSeek(userName, question, theme, position, card);
       fillReadingContent(reading, card.energy);
+      
+      // Dispatch event to save history
+      document.dispatchEvent(new CustomEvent('tarot-reading-complete', {
+        detail: {
+          spread: '时间之流', // Assuming default spread for now
+          theme,
+          question,
+          card,
+          position,
+          reading,
+          energy: card.energy
+        }
+      }));
     } catch (err) {
       console.error('[DeepSeek Error]', err);
       fillReadingFallback();
