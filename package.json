@@ -1,0 +1,10 @@
+{
+  "name": "spe-tator",
+  "private": true,
+  "scripts": {
+    "start": "node local-server.cjs"
+  },
+  "devDependencies": {
+    "puppeteer": "^25.0.4"
+  }
+}
