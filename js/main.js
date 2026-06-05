@@ -533,7 +533,6 @@ const TAROT_AI = (() => {
     if (img && flipper) { 
       // 恢复翻牌前状态
       flipper.classList.remove('flipped');
-      img.style.animation = 'none';
       img.style.transform = 'none';
       img.style.filter = 'none';
       
@@ -549,7 +548,6 @@ const TAROT_AI = (() => {
         
         // 执行 3D 翻转
         flipper.classList.add('flipped');
-        img.style.animation = 'cardReveal 0.8s cubic-bezier(0.16,1,0.3,1) both';
       }, 100);
     }
 
