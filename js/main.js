@@ -247,6 +247,7 @@ function scrollToEl(id) {
 
   cards.forEach(card => {
     card.addEventListener('click', () => {
+      if (typeof TAROT_AUDIO !== 'undefined') TAROT_AUDIO.playSelect();
       cards.forEach(c => { c.style.borderColor = ''; c.style.boxShadow = ''; });
       card.style.borderColor = 'var(--gold-400)';
       card.style.boxShadow   = '0 0 32px var(--gold-glow), var(--shadow-card)';
@@ -277,6 +278,7 @@ function scrollToEl(id) {
 
   chips.forEach(chip => {
     chip.addEventListener('click', () => {
+      if (typeof TAROT_AUDIO !== 'undefined') TAROT_AUDIO.playSelect();
       chips.forEach(c => { c.classList.remove('active'); c.setAttribute('aria-pressed', 'false'); });
       chip.classList.add('active');
       chip.setAttribute('aria-pressed', 'true');
@@ -555,6 +557,7 @@ const TAROT_AI = (() => {
         
         // 执行 3D 翻转
         flipper.classList.add('flipped');
+        if (typeof TAROT_AUDIO !== 'undefined') TAROT_AUDIO.playReveal();
       }, 100);
     }
 
@@ -591,6 +594,7 @@ const TAROT_AI = (() => {
           el.appendChild(document.createElement('br'));
         } else {
           el.appendChild(document.createTextNode(char));
+          if (i % 4 === 0 && typeof TAROT_AUDIO !== 'undefined') TAROT_AUDIO.playTick();
         }
         i++;
         if (i >= text.length) clearInterval(timer);
@@ -664,10 +668,11 @@ const TAROT_AI = (() => {
     const question = document.getElementById('user-question')?.value.trim();
 
     // 简单校验：名字必填
-    if (!name) { shakeRitual('fg-name'); return; }
-    if (!question) { shakeRitual('fg-question'); return; }
+    if (!name) { if (typeof TAROT_AUDIO !== 'undefined') TAROT_AUDIO.playError(); shakeRitual('fg-name'); return; }
+    if (!question) { if (typeof TAROT_AUDIO !== 'undefined') TAROT_AUDIO.playError(); shakeRitual('fg-question'); return; }
 
     // 按钮变化 → 引导选牌
+    if (typeof TAROT_AUDIO !== 'undefined') TAROT_AUDIO.playSubmit();
     btn.disabled = true;
     const orig = btn.innerHTML;
     btn.innerHTML = `
